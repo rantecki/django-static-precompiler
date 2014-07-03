@@ -5,6 +5,8 @@ from static_precompiler.utils import run_command, convert_urls
 import os
 import posixpath
 import re
+from django.conf import settings
+from django.contrib.staticfiles.storage import AppStaticStorage
 
 
 class LESS(BaseCompiler):
@@ -28,9 +30,19 @@ class LESS(BaseCompiler):
         return super(LESS, self).should_compile(source_path, watch)
 
     def compile_file(self, source_path):
+
+        # build list of app static file include paths
+        apps = settings.INSTALLED_APPS
+        include_paths = []
+        for app in apps:
+            app_storage = AppStaticStorage(app)
+            if os.path.isdir(app_storage.location):
+                include_paths.append(app_storage.location)
+
         full_source_path = self.get_full_source_path(source_path)
         args = [
             LESS_EXECUTABLE,
+            "--include-path=.:"+":".join(include_paths),
             full_source_path,
         ]
         # `cwd` is a directory containing `source_path`. Ex: source_path = '1/2/3', full_source_path = '/abc/1/2/3' -> cwd = '/abc'
@@ -98,7 +110,15 @@ class LESS(BaseCompiler):
         if not import_path.endswith(self.EXTENSION):
             import_path += self.EXTENSION
 
-        path = posixpath.normpath(posixpath.join(source_dir, import_path))
+        # make sure we don't double-up the prefix..
+        try:
+            import_path.index(source_dir)
+            # source_dir is already in import_path
+            # FIXME: ensure index == 0 ?
+            path = posixpath.normpath(import_path)
+        except ValueError:
+            # source_dir is not already in import_path
+            path = posixpath.normpath(posixpath.join(source_dir, import_path))
 
         try:
             self.get_full_source_path(path)
