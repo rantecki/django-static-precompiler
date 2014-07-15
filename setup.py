@@ -34,7 +34,7 @@ setup(
     ],
     keywords=["sass", "scss", "less", "css", "coffeescript", "javascript"],
     requires=[
-        "six",
+        "six==1.7.3",
     ],
     tests_require=[
         "mock",
