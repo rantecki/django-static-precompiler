@@ -33,7 +33,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP',
     ],
     keywords=["sass", "scss", "less", "css", "coffeescript", "javascript"],
-    requires=[
+    install_requires=[
         "six==1.7.3",
     ],
     tests_require=[
